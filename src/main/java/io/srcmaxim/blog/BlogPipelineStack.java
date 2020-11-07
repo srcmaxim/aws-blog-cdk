@@ -100,6 +100,12 @@ public class BlogPipelineStack extends Stack {
                 .stageName("Deploy")
                 .actions(List.of(
                         CloudFormationCreateUpdateStackAction.Builder.create()
+                                .actionName("BlogPipelineStackDeploy")
+                                .templatePath(cdkBuildOutput.atPath("BlogPipelineStack.template.json"))
+                                .stackName("BlogPipelineStack")
+                                .adminPermissions(true)
+                                .build(),
+                        CloudFormationCreateUpdateStackAction.Builder.create()
                                 .actionName("BlogApiStackDeploy")
                                 .templatePath(cdkBuildOutput.atPath("BlogApiStack.template.json"))
                                 .stackName("BlogApiStack")
