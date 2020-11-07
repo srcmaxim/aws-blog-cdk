@@ -5,7 +5,11 @@ import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.apigatewayv2.*;
+import software.amazon.awscdk.services.apigatewayv2.AddRoutesOptions;
+import software.amazon.awscdk.services.apigatewayv2.HttpApi;
+import software.amazon.awscdk.services.apigatewayv2.HttpStage;
+import software.amazon.awscdk.services.apigatewayv2.LambdaProxyIntegration;
+import software.amazon.awscdk.services.apigatewayv2.PayloadFormatVersion;
 import software.amazon.awscdk.services.cloudwatch.Alarm;
 import software.amazon.awscdk.services.cloudwatch.MetricOptions;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentConfig;
@@ -16,6 +20,7 @@ import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.ProjectionType;
 import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.lambda.Alias;
+import software.amazon.awscdk.services.lambda.CfnParametersCode;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.Runtime;
@@ -29,6 +34,8 @@ import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.POST;
 import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.PUT;
 
 public class BlogApiStack extends Stack {
+
+    private final CfnParametersCode lambdaCode;
 
     public BlogApiStack(final Construct scope, final String id) {
         this(scope, id, null);
@@ -53,9 +60,11 @@ public class BlogApiStack extends Stack {
                 .stageName("Prod")
                 .build();
 
+        lambdaCode = Code.fromCfnParameters();
+
         var function = Function.Builder.create(this, "BlogFunction")
                 .runtime(Runtime.PROVIDED)
-                .code(Code.fromAsset("blog-function.zip"))
+                .code(lambdaCode)
                 .handler("not.used.in.provided.runtime")
                 .environment(Map.of(
                         "DISABLE_SIGNAL_HANDLERS", "true",
@@ -143,5 +152,8 @@ public class BlogApiStack extends Stack {
                 .build();
     }
 
+    public CfnParametersCode getLambdaCode() {
+        return lambdaCode;
+    }
 
 }

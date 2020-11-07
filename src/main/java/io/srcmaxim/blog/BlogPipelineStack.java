@@ -16,16 +16,13 @@ import software.amazon.awscdk.services.codepipeline.actions.CloudFormationCreate
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
+import software.amazon.awscdk.services.lambda.CfnParametersCode;
 
 import java.util.List;
 
 public class BlogPipelineStack extends Stack {
 
-    public BlogPipelineStack(final Construct scope, final String id) {
-        this(scope, id, null);
-    }
-
-    public BlogPipelineStack(final Construct scope, final String id, final StackProps props) {
+    public BlogPipelineStack(final Construct scope, final String id, final StackProps props, CfnParametersCode lambdaCode) {
         super(scope, id, props);
 
         var lambdaSourceOutput = Artifact.artifact("LAMBDA_SOURCE");
@@ -99,6 +96,14 @@ public class BlogPipelineStack extends Stack {
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
+                        CloudFormationCreateUpdateStackAction.Builder.create()
+                                .actionName("BlogApiStackDeploy")
+                                .templatePath(cdkBuildOutput.atPath("BlogApiStack.template.json"))
+                                .stackName("BlogApiStack")
+                                .parameterOverrides(lambdaCode.assign(lambdaBuildOutput.getS3Location()))
+                                .extraInputs(List.of(lambdaBuildOutput))
+                                .adminPermissions(true)
+                                .build(),
                         CloudFormationCreateUpdateStackAction.Builder.create()
                                 .actionName("BlogPipelineStackDeploy")
                                 .templatePath(cdkBuildOutput.atPath("BlogPipelineStack.template.json"))

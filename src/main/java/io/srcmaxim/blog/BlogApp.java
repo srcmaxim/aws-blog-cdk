@@ -5,10 +5,11 @@ import software.amazon.awscdk.core.App;
 public class BlogApp {
 
     public static void main(final String[] args) {
-        App app = new App();
+        var app = new App();
 
-        new BlogApiStack(app, "BlogApiStack");
-        new BlogPipelineStack(app, "BlogPipelineStack");
+        var blogApiStack = new BlogApiStack(app, "BlogApiStack");
+        var lambdaCode = blogApiStack.getLambdaCode();
+        new BlogPipelineStack(app, "BlogPipelineStack", null, lambdaCode);
 
         app.synth();
     }
