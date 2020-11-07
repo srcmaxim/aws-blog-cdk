@@ -11,3 +11,7 @@ target
 .cdk.staging
 cdk.out
 
+# Project artifact files
+BlogApiStack.template.json
+blog-function.zip
+

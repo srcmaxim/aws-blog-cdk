@@ -16,3 +16,9 @@ It is a [Maven](https://maven.apache.org/) based project, so you can open this p
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+## Start a project
+
+1. Create empty files: `touch BlogApiStack.template.json` and `touch blog-function.zip`
+2. Deploy CDK resources: `cdk bootstrap`
+3. Deploy project pipeline: `cdk deploy BlogPipelineStack`
