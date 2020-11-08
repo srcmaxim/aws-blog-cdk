@@ -1,0 +1,25 @@
+{
+  "version": "0.2",
+  "phases": {
+    "install": {
+      "commands": [
+        "npm install -g aws-cdk"
+      ]
+    },
+    "build": {
+      "commands": [
+        "mkdir target",
+        "mv $CODEBUILD_SRC_DIR_LAMBDA_BUILD/blog-function.zip blog-function.zip",
+        "cdk synth BlogApiStack BlogPipelineStack -- -o .",
+        "mv cdk.out/BlogApiStack.template.json BlogApiStack.template.json",
+        "mv cdk.out/BlogPipelineStack.template.json BlogPipelineStack.template.json"
+      ]
+    }
+  },
+  "artifacts": {
+    "files": [
+      "BlogApiStack.template.json",
+      "BlogPipelineStack.template.json"
+    ]
+  }
+}
