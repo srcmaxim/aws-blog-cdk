@@ -16,7 +16,10 @@ import software.amazon.awscdk.services.codepipeline.actions.CloudFormationCreate
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
+import software.amazon.awscdk.services.codepipeline.actions.S3DeployAction;
 import software.amazon.awscdk.services.lambda.CfnParametersCode;
+import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.s3.BucketAccessControl;
 
 import java.util.List;
 
@@ -72,6 +75,23 @@ public class BlogPipelineStack extends Stack {
                                         .build())
                                 .input(lambdaSourceOutput)
                                 .outputs(List.of(lambdaBuildOutput))
+                                .build()
+                )).build());
+
+        var lambdaDeploymentBucket = Bucket.Builder.create(this, "LambdaDeploymentBucket")
+                .bucketName("blog-function")
+                .publicReadAccess(true)
+                .accessControl(BucketAccessControl.PUBLIC_READ_WRITE)
+                .build();
+
+        pipeline.addStage(StageOptions.builder()
+                .stageName("WriteToBucket")
+                .actions(List.of(
+                        S3DeployAction.Builder.create()
+                                .actionName("WriteLambda")
+                                .input(lambdaBuildOutput)
+                                .bucket(lambdaDeploymentBucket)
+                                .objectKey("blog-function.zip")
                                 .build()
                 )).build());
 
