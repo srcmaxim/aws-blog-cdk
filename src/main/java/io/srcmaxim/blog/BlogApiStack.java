@@ -70,7 +70,7 @@ public class BlogApiStack extends Stack {
                         "DISABLE_SIGNAL_HANDLERS", "true",
                         "QUARKUS_DYNAMODB_AWS_CREDENTIALS_TYPE", "default"
                 ))
-                .timeout(Duration.seconds(10))
+                .timeout(Duration.seconds(15))
                 .memorySize(128)
                 .build();
 
