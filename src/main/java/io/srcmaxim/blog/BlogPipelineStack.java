@@ -70,7 +70,7 @@ public class BlogPipelineStack extends Stack {
                                                 .buildImage(LinuxBuildImage.STANDARD_4_0)
                                                 .computeType(ComputeType.MEDIUM)
                                                 .build())
-                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec-lambda.yml"))
+                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
                                         .fileSystemLocations(List.of())
                                         .build())
                                 .input(lambdaSourceOutput)
