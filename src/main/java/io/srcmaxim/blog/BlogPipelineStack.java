@@ -78,23 +78,6 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
-        var lambdaDeploymentBucket = Bucket.Builder.create(this, "LambdaDeploymentBucket")
-                .bucketName("blog-function")
-                .publicReadAccess(true)
-                .accessControl(BucketAccessControl.PUBLIC_READ_WRITE)
-                .build();
-
-        pipeline.addStage(StageOptions.builder()
-                .stageName("WriteToBucket")
-                .actions(List.of(
-                        S3DeployAction.Builder.create()
-                                .actionName("WriteLambda")
-                                .input(lambdaBuildOutput)
-                                .bucket(lambdaDeploymentBucket)
-                                .objectKey("blog-function.zip")
-                                .build()
-                )).build());
-
         pipeline.addStage(StageOptions.builder()
                 .stageName("CdkBuild")
                 .actions(List.of(
@@ -105,7 +88,7 @@ public class BlogPipelineStack extends Stack {
                                                 .buildImage(LinuxBuildImage.STANDARD_4_0)
                                                 .computeType(ComputeType.SMALL)
                                                 .build())
-                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec-cdk.yml"))
+                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
                                         .build())
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
