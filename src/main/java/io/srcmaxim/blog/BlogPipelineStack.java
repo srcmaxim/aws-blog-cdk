@@ -76,7 +76,7 @@ public class BlogPipelineStack extends Stack {
 
         IRole cdkDeployRole = Role.Builder.create(this, "CdkDeployRole")
                 .roleName(PhysicalName.GENERATE_IF_NEEDED)
-                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("")))
+                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("AWSCloudFormationFullAccess")))
                 .assumedBy(pipeline.getRole())
                 .build();
         pipeline.addStage(StageOptions.builder()
