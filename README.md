@@ -19,6 +19,6 @@ Enjoy!
 
 ## Start a project
 
-1. Create empty files: `touch BlogApiStack.template.json` and `touch blog-function.zip`
+1. Create empty files: `touch BlogApiStack.template.json` and `touch function.zip`
 2. Deploy CDK resources: `cdk bootstrap`
 3. Deploy project pipeline: `cdk deploy BlogPipelineStack`

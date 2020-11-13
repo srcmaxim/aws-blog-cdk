@@ -5,14 +5,10 @@ phases:
       - npm install -g aws-cdk
   build:
     commands:
-      - mkdir target
-      - mv $CODEBUILD_SRC_DIR_LAMBDA_BUILD/blog-function.zip blog-function.zip
+      - mv $CODEBUILD_SRC_DIR_LAMBDA_BUILD/function.zip function.zip
       - cdk synth BlogApiStack BlogPipelineStack -- -o .
-  post_build:
-    commands:
-      - mv cdk.out/BlogApiStack.template.json BlogApiStack.template.json
-      - mv cdk.out/BlogPipelineStack.template.json BlogPipelineStack.template.json
 artifacts:
   files:
     - BlogApiStack.template.json
     - BlogPipelineStack.template.json
+  base-directory: cdk.out
