@@ -1,17 +1,20 @@
 package io.srcmaxim.blog;
 
-import software.amazon.awscdk.core.Construct;
-import software.amazon.awscdk.core.SecretValue;
-import software.amazon.awscdk.core.Stack;
-import software.amazon.awscdk.core.StackProps;
+import software.amazon.awscdk.core.*;
 import software.amazon.awscdk.services.codebuild.*;
 import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
+import software.amazon.awscdk.services.codepipeline.actions.CloudFormationCreateUpdateStackAction;
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
+import software.amazon.awscdk.services.codepipeline.actions.S3DeployAction;
+import software.amazon.awscdk.services.iam.*;
 import software.amazon.awscdk.services.lambda.CfnParametersCode;
+import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.s3.BucketAccessControl;
+import software.amazon.jsii.JsiiObject;
 
 import java.util.List;
 
@@ -71,6 +74,11 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
+        IRole cdkDeployRole = Role.Builder.create(this, "CdkDeployRole")
+                .roleName(PhysicalName.GENERATE_IF_NEEDED)
+                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("")))
+                .assumedBy(pipeline.getRole())
+                .build();
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
@@ -86,7 +94,7 @@ public class BlogPipelineStack extends Stack {
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
                                 .outputs(List.of(cdkBuildOutput))
-                                .role(pipeline.getRole())
+                                .role(cdkDeployRole)
                                 .build()
                 )).build());
     }
