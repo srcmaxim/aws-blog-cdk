@@ -68,7 +68,7 @@ public class BlogPipelineStack extends Stack {
                                                 .computeType(ComputeType.MEDIUM)
                                                 .build())
                                         .buildSpec(BuildSpec.fromSourceFilename("buildspec-quarkus.yml"))
-                                        .cache(Cache.local(LocalCacheMode.CUSTOM)) // Cache directories of buildspec-quarkus.yml
+                                        .cache(Cache.local(LocalCacheMode.DOCKER_LAYER, LocalCacheMode.CUSTOM))
                                         .build())
                                 .input(lambdaSourceOutput)
                                 .outputs(List.of(lambdaBuildOutput))
