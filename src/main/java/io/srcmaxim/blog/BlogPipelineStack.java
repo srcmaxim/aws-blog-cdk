@@ -76,10 +76,10 @@ public class BlogPipelineStack extends Stack {
                 )).build());
 
         pipeline.addStage(StageOptions.builder()
-                .stageName("CdkBuild")
+                .stageName("Deploy")
                 .actions(List.of(
                         CodeBuildAction.Builder.create()
-                                .actionName("CdkBuild")
+                                .actionName("CdkDeploy")
                                 .project(PipelineProject.Builder.create(this, "CdkBuildProject")
                                         .environment(BuildEnvironment.builder()
                                                 .buildImage(LinuxBuildImage.STANDARD_4_0)
@@ -90,25 +90,6 @@ public class BlogPipelineStack extends Stack {
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
                                 .outputs(List.of(cdkBuildOutput))
-                                .build()
-                )).build());
-
-        pipeline.addStage(StageOptions.builder()
-                .stageName("Deploy")
-                .actions(List.of(
-                        CloudFormationCreateUpdateStackAction.Builder.create()
-                                .actionName("BlogApiStackDeploy")
-                                .templatePath(cdkBuildOutput.atPath("BlogApiStack.template.json"))
-                                .stackName("BlogApiStack")
-                                .parameterOverrides(lambdaCode.assign(lambdaBuildOutput.getS3Location()))
-                                .extraInputs(List.of(lambdaBuildOutput))
-                                .adminPermissions(true)
-                                .build(),
-                        CloudFormationCreateUpdateStackAction.Builder.create()
-                                .actionName("BlogPipelineStackDeploy")
-                                .templatePath(cdkBuildOutput.atPath("BlogPipelineStack.template.json"))
-                                .stackName("BlogPipelineStack")
-                                .adminPermissions(true)
                                 .build()
                 )).build());
     }
