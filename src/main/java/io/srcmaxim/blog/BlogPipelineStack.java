@@ -4,11 +4,7 @@ import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.SecretValue;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.codebuild.BuildEnvironment;
-import software.amazon.awscdk.services.codebuild.BuildSpec;
-import software.amazon.awscdk.services.codebuild.ComputeType;
-import software.amazon.awscdk.services.codebuild.LinuxBuildImage;
-import software.amazon.awscdk.services.codebuild.PipelineProject;
+import software.amazon.awscdk.services.codebuild.*;
 import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
@@ -60,6 +56,7 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
+        IBuildImage quarkusBuildImage = LinuxBuildImage.fromDockerRegistry("quay.io/quarkus/centos-quarkus-maven:20.2.0-java11");
         pipeline.addStage(StageOptions.builder()
                 .stageName("LambdaBuild")
                 .actions(List.of(
@@ -67,11 +64,10 @@ public class BlogPipelineStack extends Stack {
                                 .actionName("LambdaBuild")
                                 .project(PipelineProject.Builder.create(this, "LambdaBuildProject")
                                         .environment(BuildEnvironment.builder()
-                                                .buildImage(LinuxBuildImage.STANDARD_4_0)
+                                                .buildImage(quarkusBuildImage)
                                                 .computeType(ComputeType.MEDIUM)
                                                 .build())
-                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
-                                        .fileSystemLocations(List.of())
+                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec-quarkus.yml"))
                                         .build())
                                 .input(lambdaSourceOutput)
                                 .outputs(List.of(lambdaBuildOutput))
