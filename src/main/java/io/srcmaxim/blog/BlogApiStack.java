@@ -49,15 +49,15 @@ public class BlogApiStack extends Stack {
                 .apiName("BlogHttpApi")
                 .build();
 
-        var devStage = HttpStage.Builder.create(this, "Dev")
+        var devStage = HttpStage.Builder.create(this, "DevStage")
                 .autoDeploy(true)
                 .httpApi(httpApi)
-                .stageName("Dev")
+                .stageName("dev")
                 .build();
 
-        var prodStage = HttpStage.Builder.create(this, "Prod")
+        var prodStage = HttpStage.Builder.create(this, "ProdStage")
                 .httpApi(httpApi)
-                .stageName("Prod")
+                .stageName("prod")
                 .build();
 
         lambdaCode = Code.fromCfnParameters();
@@ -67,8 +67,7 @@ public class BlogApiStack extends Stack {
                 .code(lambdaCode)
                 .handler("not.used.in.provided.runtime")
                 .environment(Map.of(
-                        "DISABLE_SIGNAL_HANDLERS", "true",
-                        "QUARKUS_DYNAMODB_AWS_CREDENTIALS_TYPE", "default"
+                        "DISABLE_SIGNAL_HANDLERS", "true"
                 ))
                 .timeout(Duration.seconds(15))
                 .memorySize(128)
