@@ -33,7 +33,7 @@ public class BlogPipelineStack extends Stack {
                 .build();
 
         pipeline.getRole()
-                .addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AWSCloudFormationFullAccess"));
+                .addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
         pipeline.addStage(StageOptions.builder()
                 .stageName("Source")
