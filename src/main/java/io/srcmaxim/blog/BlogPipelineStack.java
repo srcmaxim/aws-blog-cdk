@@ -79,6 +79,8 @@ public class BlogPipelineStack extends Stack {
                 .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess")))
                 .build();
 
+        pipeline.getRole().grant(cdkDeployRole);
+
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
