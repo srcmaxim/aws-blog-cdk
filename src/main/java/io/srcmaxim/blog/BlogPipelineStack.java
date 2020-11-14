@@ -1,20 +1,20 @@
 package io.srcmaxim.blog;
 
-import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.core.Construct;
+import software.amazon.awscdk.core.SecretValue;
+import software.amazon.awscdk.core.Stack;
+import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.codebuild.*;
 import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
-import software.amazon.awscdk.services.codepipeline.actions.CloudFormationCreateUpdateStackAction;
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
-import software.amazon.awscdk.services.codepipeline.actions.S3DeployAction;
-import software.amazon.awscdk.services.iam.*;
+import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.iam.Role;
+import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.CfnParametersCode;
-import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.BucketAccessControl;
-import software.amazon.jsii.JsiiObject;
 
 import java.util.List;
 
@@ -31,9 +31,6 @@ public class BlogPipelineStack extends Stack {
 
         var pipeline = Pipeline.Builder.create(this, "BlogPipeline")
                 .build();
-
-        pipeline.getRole()
-                .addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
         pipeline.addStage(StageOptions.builder()
                 .stageName("Source")
@@ -77,11 +74,17 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
+        var cdkDeployRole = Role.Builder.create(this, "CdkDeployRole")
+                .assumedBy(new ServicePrincipal("codebuild.amazonaws.com"))
+                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess")))
+                .build();
+
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
                         CodeBuildAction.Builder.create()
                                 .actionName("CdkDeploy")
+                                .role(cdkDeployRole)
                                 .project(PipelineProject.Builder.create(this, "CdkBuildProject")
                                         .environment(BuildEnvironment.builder()
                                                 .buildImage(LinuxBuildImage.STANDARD_4_0)
