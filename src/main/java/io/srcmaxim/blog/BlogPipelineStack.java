@@ -32,6 +32,9 @@ public class BlogPipelineStack extends Stack {
         var pipeline = Pipeline.Builder.create(this, "BlogPipeline")
                 .build();
 
+        pipeline.getRole()
+                .addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AWSCloudFormationFullAccess"));
+
         pipeline.addStage(StageOptions.builder()
                 .stageName("Source")
                 .actions(List.of(
@@ -74,11 +77,6 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
-        IRole cdkDeployRole = Role.Builder.create(this, "CdkDeployRole")
-                .roleName(PhysicalName.GENERATE_IF_NEEDED)
-                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("AWSCloudFormationFullAccess")))
-                .assumedBy(pipeline.getRole())
-                .build();
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
@@ -94,7 +92,6 @@ public class BlogPipelineStack extends Stack {
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
                                 .outputs(List.of(cdkBuildOutput))
-                                .role(cdkDeployRole)
                                 .build()
                 )).build());
     }
