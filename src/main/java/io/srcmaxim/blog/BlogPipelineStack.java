@@ -8,10 +8,12 @@ import software.amazon.awscdk.services.codebuild.*;
 import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
+import software.amazon.awscdk.services.codepipeline.actions.Action;
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
+import software.amazon.awscdk.services.iam.PolicyStatement;
 import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.lambda.CfnParametersCode;
@@ -55,45 +57,47 @@ public class BlogPipelineStack extends Stack {
                                 .build()
                 )).build());
 
-        IBuildImage quarkusBuildImage = LinuxBuildImage.fromDockerRegistry("quay.io/quarkus/centos-quarkus-maven:20.2.0-java11");
+        var quarkusBuildImage = LinuxBuildImage.fromDockerRegistry("quay.io/quarkus/centos-quarkus-maven:20.2.0-java11");
+        var lambdaBuildProject = PipelineProject.Builder.create(this, "LambdaBuildProject")
+                .environment(BuildEnvironment.builder()
+                        .buildImage(quarkusBuildImage)
+                        .computeType(ComputeType.MEDIUM)
+                        .build())
+                .buildSpec(BuildSpec.fromSourceFilename("buildspec-quarkus.yml"))
+                .cache(Cache.local(LocalCacheMode.DOCKER_LAYER, LocalCacheMode.CUSTOM))
+                .build();
         pipeline.addStage(StageOptions.builder()
                 .stageName("LambdaBuild")
                 .actions(List.of(
                         CodeBuildAction.Builder.create()
                                 .actionName("LambdaBuild")
-                                .project(PipelineProject.Builder.create(this, "LambdaBuildProject")
-                                        .environment(BuildEnvironment.builder()
-                                                .buildImage(quarkusBuildImage)
-                                                .computeType(ComputeType.MEDIUM)
-                                                .build())
-                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec-quarkus.yml"))
-                                        .cache(Cache.local(LocalCacheMode.DOCKER_LAYER, LocalCacheMode.CUSTOM))
-                                        .build())
+                                .project(lambdaBuildProject)
                                 .input(lambdaSourceOutput)
                                 .outputs(List.of(lambdaBuildOutput))
                                 .build()
                 )).build());
 
-        var cdkDeployRole = Role.Builder.create(this, "CdkDeployRole")
-                .assumedBy(new ServicePrincipal("codebuild.amazonaws.com"))
-                .managedPolicies(List.of(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess")))
+        var cdkDeployProject = PipelineProject.Builder.create(this, "CdkDeployProject")
+                .environment(BuildEnvironment.builder()
+                        .buildImage(LinuxBuildImage.STANDARD_4_0)
+                        .computeType(ComputeType.SMALL)
+                        .build())
+                .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
                 .build();
 
-        pipeline.getRole().grant(cdkDeployRole);
+        var cfnDescribeStacks = PolicyStatement.Builder.create()
+                .actions(List.of("cloudformation:DescribeStacks"))
+                .resources(List.of("*"))
+                .build();
+
+        cdkDeployProject.addToRolePolicy(cfnDescribeStacks);
 
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
                 .actions(List.of(
                         CodeBuildAction.Builder.create()
                                 .actionName("CdkDeploy")
-                                .role(cdkDeployRole)
-                                .project(PipelineProject.Builder.create(this, "CdkBuildProject")
-                                        .environment(BuildEnvironment.builder()
-                                                .buildImage(LinuxBuildImage.STANDARD_4_0)
-                                                .computeType(ComputeType.SMALL)
-                                                .build())
-                                        .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
-                                        .build())
+                                .project(cdkDeployProject)
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
                                 .outputs(List.of(cdkBuildOutput))
