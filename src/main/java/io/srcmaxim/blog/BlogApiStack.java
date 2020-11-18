@@ -35,8 +35,6 @@ import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.PUT;
 
 public class BlogApiStack extends Stack {
 
-    private final CfnParametersCode lambdaCode;
-
     public BlogApiStack(final Construct scope, final String id) {
         this(scope, id, null);
     }
@@ -60,11 +58,9 @@ public class BlogApiStack extends Stack {
                 .stageName("prod")
                 .build();
 
-        lambdaCode = Code.fromCfnParameters();
-
         var function = Function.Builder.create(this, "BlogFunction")
                 .runtime(Runtime.PROVIDED)
-                .code(lambdaCode)
+                .code(Code.fromAsset("function.zip"))
                 .handler("not.used.in.provided.runtime")
                 .environment(Map.of(
                         "DISABLE_SIGNAL_HANDLERS", "true"
@@ -149,10 +145,6 @@ public class BlogApiStack extends Stack {
                 .exportName("BlogHttpGatewayUrl")
                 .value(httpApi.getUrl())
                 .build();
-    }
-
-    public CfnParametersCode getLambdaCode() {
-        return lambdaCode;
     }
 
 }

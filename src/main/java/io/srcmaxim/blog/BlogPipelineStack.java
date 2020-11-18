@@ -22,7 +22,7 @@ import java.util.List;
 
 public class BlogPipelineStack extends Stack {
 
-    public BlogPipelineStack(final Construct scope, final String id, final StackProps props, CfnParametersCode lambdaCode) {
+    public BlogPipelineStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
 
         var lambdaSourceOutput = Artifact.artifact("LAMBDA_SOURCE");

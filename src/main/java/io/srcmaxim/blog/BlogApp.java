@@ -7,9 +7,8 @@ public class BlogApp {
     public static void main(final String[] args) {
         var app = new App();
 
-        var blogApiStack = new BlogApiStack(app, "BlogApiStack");
-        var lambdaCode = blogApiStack.getLambdaCode();
-        new BlogPipelineStack(app, "BlogPipelineStack", null, lambdaCode);
+        new BlogApiStack(app, "BlogApiStack");
+        new BlogPipelineStack(app, "BlogPipelineStack", null);
 
         app.synth();
     }
