@@ -83,6 +83,7 @@ public class BlogPipelineStack extends Stack {
                 .actions(List.of(
                         "cloudformation:DescribeStacks",
                         "cloudformation:CreateChangeSet",
+                        "cloudformation:DescribeChangeSet",
                         "s3:*"
                 ))
                 .resources(List.of("*"))
