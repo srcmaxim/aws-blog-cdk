@@ -81,9 +81,7 @@ public class BlogPipelineStack extends Stack {
 
         var cfnDescribeStacks = PolicyStatement.Builder.create()
                 .actions(List.of(
-                        "cloudformation:DescribeStacks",
-                        "cloudformation:CreateChangeSet",
-                        "cloudformation:DescribeChangeSet",
+                        "cloudformation:*",
                         "s3:*"
                 ))
                 .resources(List.of("*"))
