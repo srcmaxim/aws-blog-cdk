@@ -8,15 +8,10 @@ import software.amazon.awscdk.services.codebuild.*;
 import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
-import software.amazon.awscdk.services.codepipeline.actions.Action;
 import software.amazon.awscdk.services.codepipeline.actions.CodeBuildAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubSourceAction;
 import software.amazon.awscdk.services.codepipeline.actions.GitHubTrigger;
-import software.amazon.awscdk.services.iam.ManagedPolicy;
 import software.amazon.awscdk.services.iam.PolicyStatement;
-import software.amazon.awscdk.services.iam.Role;
-import software.amazon.awscdk.services.iam.ServicePrincipal;
-import software.amazon.awscdk.services.lambda.CfnParametersCode;
 
 import java.util.List;
 
@@ -29,7 +24,6 @@ public class BlogPipelineStack extends Stack {
         var cdkSourceOutput = Artifact.artifact("CDK_SOURCE");
 
         var lambdaBuildOutput = Artifact.artifact("LAMBDA_BUILD");
-        var cdkBuildOutput = Artifact.artifact("CDK_BUILD");
 
         var pipeline = Pipeline.Builder.create(this, "BlogPipeline")
                 .build();
@@ -100,7 +94,6 @@ public class BlogPipelineStack extends Stack {
                                 .project(cdkDeployProject)
                                 .input(cdkSourceOutput)
                                 .extraInputs(List.of(lambdaBuildOutput))
-                                .outputs(List.of(cdkBuildOutput))
                                 .build()
                 )).build());
     }
