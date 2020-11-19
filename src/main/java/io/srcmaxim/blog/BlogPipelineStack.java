@@ -79,12 +79,12 @@ public class BlogPipelineStack extends Stack {
                 .buildSpec(BuildSpec.fromSourceFilename("buildspec.yml"))
                 .build();
 
-        var cfnDescribeStacks = PolicyStatement.Builder.create()
+        var policyAllowAll = PolicyStatement.Builder.create()
                 .actions(List.of("*"))
                 .resources(List.of("*"))
                 .build();
 
-        cdkDeployProject.addToRolePolicy(cfnDescribeStacks);
+        cdkDeployProject.addToRolePolicy(policyAllowAll);
 
         pipeline.addStage(StageOptions.builder()
                 .stageName("Deploy")
