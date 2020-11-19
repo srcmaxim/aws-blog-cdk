@@ -80,7 +80,10 @@ public class BlogPipelineStack extends Stack {
                 .build();
 
         var cfnDescribeStacks = PolicyStatement.Builder.create()
-                .actions(List.of("cloudformation:DescribeStacks"))
+                .actions(List.of(
+                        "cloudformation:DescribeStacks",
+                        "s3:*"
+                ))
                 .resources(List.of("*"))
                 .build();
 
