@@ -86,7 +86,8 @@ public class BlogPipelineStack extends Stack {
                         "cloudformation:*",
                         "codedeploy:*",
                         "lambda:*",
-                        "iam:*"
+                        "iam:*",
+                        "apigateway:*"
                 ))
                 .resources(List.of("*"))
                 .build();
