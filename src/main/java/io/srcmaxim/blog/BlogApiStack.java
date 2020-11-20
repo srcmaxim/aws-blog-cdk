@@ -104,7 +104,7 @@ public class BlogApiStack extends Stack {
 
         LambdaDeploymentGroup.Builder.create(this, "DeploymentGroup")
                 .alias(alias)
-                .deploymentConfig(LambdaDeploymentConfig.CANARY_10_PERCENT_5_MINUTES)
+                .deploymentConfig(LambdaDeploymentConfig.CANARY_10_PERCENT_10_MINUTES)
                 .alarms(List.of(failureAlarm))
                 .build();
 

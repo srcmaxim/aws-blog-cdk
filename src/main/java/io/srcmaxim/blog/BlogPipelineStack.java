@@ -80,7 +80,7 @@ public class BlogPipelineStack extends Stack {
                 .build();
 
         var policyAllowAll = PolicyStatement.Builder.create()
-                .actions(List.of("*"))
+                .actions(List.of("s3:*", "dynamodb:*", "cloudformation:*", "iam:*"))
                 .resources(List.of("*"))
                 .build();
 
