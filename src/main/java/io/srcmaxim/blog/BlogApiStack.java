@@ -75,6 +75,24 @@ public class BlogApiStack extends Stack {
                 .build();
 
         httpApi.addRoutes(AddRoutesOptions.builder()
+                .path("/health")
+                .methods(List.of(GET))
+                .integration(LambdaProxyIntegration.Builder.create()
+                        .handler(alias)
+                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
+                        .build())
+                .build());
+
+        httpApi.addRoutes(AddRoutesOptions.builder()
+                .path("/meta")
+                .methods(List.of(GET))
+                .integration(LambdaProxyIntegration.Builder.create()
+                        .handler(alias)
+                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
+                        .build())
+                .build());
+
+        httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/posts")
                 .methods(List.of(GET, POST, PUT))
                 .integration(LambdaProxyIntegration.Builder.create()
