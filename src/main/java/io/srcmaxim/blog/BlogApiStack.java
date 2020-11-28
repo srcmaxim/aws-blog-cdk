@@ -12,6 +12,7 @@ import software.amazon.awscdk.services.apigatewayv2.LambdaProxyIntegration;
 import software.amazon.awscdk.services.apigatewayv2.PayloadFormatVersion;
 import software.amazon.awscdk.services.cloudwatch.Alarm;
 import software.amazon.awscdk.services.cloudwatch.MetricOptions;
+import software.amazon.awscdk.services.codedeploy.AutoRollbackConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentGroup;
 import software.amazon.awscdk.services.dynamodb.Attribute;
@@ -19,6 +20,8 @@ import software.amazon.awscdk.services.dynamodb.AttributeType;
 import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
 import software.amazon.awscdk.services.dynamodb.ProjectionType;
 import software.amazon.awscdk.services.dynamodb.Table;
+import software.amazon.awscdk.services.ecs.DeploymentController;
+import software.amazon.awscdk.services.ecs.DeploymentControllerType;
 import software.amazon.awscdk.services.lambda.Alias;
 import software.amazon.awscdk.services.lambda.CfnParametersCode;
 import software.amazon.awscdk.services.lambda.Code;
@@ -125,8 +128,9 @@ public class BlogApiStack extends Stack {
                 .statistic("Sum")
                 .period(Duration.minutes(1))
                 .build();
+
         var failureAlarm = Alarm.Builder.create(this, "ApiGateway5XXAlarm")
-                .metric(alias.metric("5XX", metricOptions))
+                .metric(httpApi.metric("5XX", metricOptions))
                 .threshold(1)
                 .evaluationPeriods(1)
                 .build();
@@ -135,6 +139,7 @@ public class BlogApiStack extends Stack {
                 .alias(alias)
                 .deploymentConfig(LambdaDeploymentConfig.CANARY_10_PERCENT_10_MINUTES)
                 .alarms(List.of(failureAlarm))
+                .autoRollback(AutoRollbackConfig.builder().deploymentInAlarm(true).build())
                 .build();
 
         //----- DynamoDB Table -----//
