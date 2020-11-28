@@ -119,12 +119,14 @@ public class BlogApiStack extends Stack {
                         .build())
                 .build());
 
-        var failureAlarm = Alarm.Builder.create(this, "Alarm5XXError")
-                .metric(alias.metric("5XXError", MetricOptions.builder()
-                        .dimensions(Map.of("ApiName",  httpApi.getHttpApiName()))
-                        .statistic("Sum")
-                        .period(Duration.minutes(1))
-                        .build()))
+        var metricOptions = MetricOptions.builder()
+                .label("5XX")
+                .dimensions(Map.of("ApiId", httpApi.getHttpApiId()))
+                .statistic("Sum")
+                .period(Duration.minutes(1))
+                .build();
+        var failureAlarm = Alarm.Builder.create(this, "ApiGateway5XXAlarm")
+                .metric(alias.metric("5XX", metricOptions))
                 .threshold(1)
                 .evaluationPeriods(1)
                 .build();
