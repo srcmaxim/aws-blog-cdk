@@ -10,6 +10,7 @@ import software.amazon.awscdk.services.cloudwatch.MetricOptions;
 import software.amazon.awscdk.services.codedeploy.AutoRollbackConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentGroup;
+import software.amazon.awscdk.services.codepipeline.Artifact;
 import software.amazon.awscdk.services.codepipeline.Pipeline;
 import software.amazon.awscdk.services.codepipeline.StageOptions;
 import software.amazon.awscdk.services.codepipeline.actions.EcrSourceAction;
@@ -38,6 +39,7 @@ public class BlogDeployPipelineStack extends Stack {
                                 .actionName("EcrLambdaSource")
                                 .imageTag("10")
                                 .repository(lambdaRepository)
+                                .output(Artifact.artifact("ECR_LAMBDA_SOURCE"))
                                 .build())
                 ).build());
 
