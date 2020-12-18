@@ -8,45 +8,34 @@ import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.apigatewayv2.AddRoutesOptions;
 import software.amazon.awscdk.services.apigatewayv2.HttpApi;
 import software.amazon.awscdk.services.apigatewayv2.HttpStage;
-import software.amazon.awscdk.services.apigatewayv2.LambdaProxyIntegration;
 import software.amazon.awscdk.services.apigatewayv2.PayloadFormatVersion;
+import software.amazon.awscdk.services.apigatewayv2.integrations.LambdaProxyIntegration;
 import software.amazon.awscdk.services.cloudwatch.Alarm;
 import software.amazon.awscdk.services.cloudwatch.MetricOptions;
 import software.amazon.awscdk.services.codedeploy.AutoRollbackConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentConfig;
 import software.amazon.awscdk.services.codedeploy.LambdaDeploymentGroup;
-import software.amazon.awscdk.services.dynamodb.Attribute;
-import software.amazon.awscdk.services.dynamodb.AttributeType;
-import software.amazon.awscdk.services.dynamodb.GlobalSecondaryIndexProps;
-import software.amazon.awscdk.services.dynamodb.ProjectionType;
-import software.amazon.awscdk.services.dynamodb.Table;
-import software.amazon.awscdk.services.ecs.DeploymentController;
-import software.amazon.awscdk.services.ecs.DeploymentControllerType;
+import software.amazon.awscdk.services.dynamodb.*;
+import software.amazon.awscdk.services.ecr.Repository;
 import software.amazon.awscdk.services.lambda.Alias;
-import software.amazon.awscdk.services.lambda.CfnParametersCode;
-import software.amazon.awscdk.services.lambda.Code;
-import software.amazon.awscdk.services.lambda.Function;
-import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.lambda.DockerImageCode;
+import software.amazon.awscdk.services.lambda.DockerImageFunction;
+import software.amazon.awscdk.services.lambda.EcrImageCodeProps;
 
 import java.util.List;
 import java.util.Map;
 
-import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.DELETE;
-import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.GET;
-import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.POST;
-import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.PUT;
+import static software.amazon.awscdk.services.apigatewayv2.HttpMethod.*;
 
 public class BlogApiStack extends Stack {
 
-    public BlogApiStack(final Construct scope, final String id) {
-        this(scope, id, null);
-    }
+    HttpApi httpApi;
 
     public BlogApiStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
 
         //----- HTTP API with Lambda Function and Lambda Deployment Group -----//
-        var httpApi = HttpApi.Builder.create(this, "BlogHttpGateway")
+        httpApi = HttpApi.Builder.create(this, "BlogHttpGateway")
                 .apiName("BlogHttpApi")
                 .build();
 
@@ -61,13 +50,10 @@ public class BlogApiStack extends Stack {
                 .stageName("prod")
                 .build();
 
-        var function = Function.Builder.create(this, "BlogFunction")
-                .runtime(Runtime.PROVIDED)
-                .code(Code.fromAsset("function.zip"))
-                .handler("not.used.in.provided.runtime")
-                .environment(Map.of(
-                        "DISABLE_SIGNAL_HANDLERS", "true"
-                ))
+        var lambdaRepository = Repository.fromRepositoryName(this, "LambdaRepositoryArn", "blog-lambda");
+
+        var function = DockerImageFunction.Builder.create(this, "BlogFunction")
+                .code(DockerImageCode.fromEcr(lambdaRepository, EcrImageCodeProps.builder().tag("10").build()))
                 .timeout(Duration.seconds(15))
                 .memorySize(128)
                 .build();
@@ -77,49 +63,39 @@ public class BlogApiStack extends Stack {
                 .version(function.getCurrentVersion())
                 .build();
 
+        var lambdaProxyIntegration = LambdaProxyIntegration.Builder.create()
+                .handler(alias)
+                .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
+                .build();
+
         httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/health")
                 .methods(List.of(GET))
-                .integration(LambdaProxyIntegration.Builder.create()
-                        .handler(alias)
-                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
-                        .build())
+                .integration(lambdaProxyIntegration)
                 .build());
 
         httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/meta")
                 .methods(List.of(GET))
-                .integration(LambdaProxyIntegration.Builder.create()
-                        .handler(alias)
-                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
-                        .build())
+                .integration(lambdaProxyIntegration)
                 .build());
 
         httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/error")
                 .methods(List.of(GET))
-                .integration(LambdaProxyIntegration.Builder.create()
-                        .handler(alias)
-                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
-                        .build())
+                .integration(lambdaProxyIntegration)
                 .build());
 
         httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/posts")
                 .methods(List.of(GET, POST, PUT))
-                .integration(LambdaProxyIntegration.Builder.create()
-                        .handler(alias)
-                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
-                        .build())
+                .integration(lambdaProxyIntegration)
                 .build());
 
         httpApi.addRoutes(AddRoutesOptions.builder()
                 .path("/posts/{id}")
                 .methods(List.of(GET, PUT, DELETE))
-                .integration(LambdaProxyIntegration.Builder.create()
-                        .handler(alias)
-                        .payloadFormatVersion(PayloadFormatVersion.VERSION_2_0)
-                        .build())
+                .integration(lambdaProxyIntegration)
                 .build());
 
         var metricOptions = MetricOptions.builder()
